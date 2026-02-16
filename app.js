@@ -3,6 +3,7 @@ function SkyFetch(apiKey) {
   this.apiUrl = 'https://api.openweathermap.org/data/2.5/';
 }
 
+// Fetch both current weather and forecast
 SkyFetch.prototype.getWeatherData = async function(city) {
   const weatherDisplay = document.getElementById('weather-display');
   const forecastDisplay = document.getElementById('forecast-display');
@@ -20,11 +21,15 @@ SkyFetch.prototype.getWeatherData = async function(city) {
 
     this.displayCurrentWeather(currentRes.data);
     this.displayForecast(forecastRes.data);
+
+    this.saveSearch(city);
+    this.renderRecentSearches();
   } catch (error) {
     weatherDisplay.innerHTML = `<p class="loading">❌ Could not fetch weather for "${city}". Please check the city name.</p>`;
   }
 };
 
+// Display current weather
 SkyFetch.prototype.displayCurrentWeather = function(data) {
   const cityName = data.name;
   const temperature = Math.round(data.main.temp);
@@ -43,6 +48,7 @@ SkyFetch.prototype.displayCurrentWeather = function(data) {
   document.getElementById('weather-display').innerHTML = html;
 };
 
+// Display forecast
 SkyFetch.prototype.displayForecast = function(data) {
   const forecastDisplay = document.getElementById('forecast-display');
   forecastDisplay.innerHTML = '';
@@ -70,6 +76,30 @@ SkyFetch.prototype.displayForecast = function(data) {
   });
 };
 
+// Save searches in localStorage
+SkyFetch.prototype.saveSearch = function(city) {
+  let searches = JSON.parse(localStorage.getItem('skyfetch-searches')) || [];
+  // Avoid duplicates
+  searches = searches.filter(c => c.toLowerCase() !== city.toLowerCase());
+  searches.unshift(city);
+  // Keep only last 5
+  searches = searches.slice(0, 5);
+  localStorage.setItem('skyfetch-searches', JSON.stringify(searches));
+};
+
+// Render recent searches as clickable pills
+SkyFetch.prototype.renderRecentSearches = function() {
+  const container = document.getElementById('recent-searches');
+  const searches = JSON.parse(localStorage.getItem('skyfetch-searches')) || [];
+  container.innerHTML = '';
+  searches.forEach(city => {
+    const btn = document.createElement('button');
+    btn.textContent = city;
+    btn.addEventListener('click', () => this.getWeatherData(city));
+    container.appendChild(btn);
+  });
+};
+
 // Initialize app
 const app = new SkyFetch('caf919bf727035bee8cf79e02938cd8f'); // Replace with your actual API key
 
@@ -83,5 +113,13 @@ document.getElementById('search-btn').addEventListener('click', () => {
   }
 });
 
-// Default city on load
-app.getWeatherData('London');
+// Auto-load last searched city
+window.addEventListener('load', () => {
+  const searches = JSON.parse(localStorage.getItem('skyfetch-searches')) || [];
+  if (searches.length > 0) {
+    app.getWeatherData(searches[0]);
+  } else {
+    app.getWeatherData('London');
+  }
+  app.renderRecentSearches();
+});

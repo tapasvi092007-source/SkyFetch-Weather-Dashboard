@@ -166,3 +166,27 @@ h1 {
     height: 70px;
   }
 }
+/* ... keep your existing styles ... */
+
+/* Recent searches pills */
+.recent-searches {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 15px 0;
+}
+
+.recent-searches button {
+  background: #eee;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 15px;
+  margin: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.recent-searches button:hover {
+  background: #667eea;
+  color: #fff;
+}
